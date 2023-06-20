@@ -4,3 +4,6 @@ descrieri sau URL-uri de pe paginile web găsite în rezultate.
 
  Se vor folosi urmatoarele biblioteci: google-api-python-client, pandas, playwright, beautifulsoup4 și requests
 
+UPDATE 20/06/2023: 
+-Am folosit Google Custom Search API pentru a ma ajuta in a folosi link-urile gasite in functie de un keyword sau string
+-Am folosit BeautifulSoup pentru a extrage din documentul HTML informatiile necesare
