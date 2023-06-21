@@ -1,56 +1,92 @@
-import requests
-import re
-from bs4 import BeautifulSoup
 from googleapiclient.discovery import build
+import pprint
+import requests
+from bs4 import BeautifulSoup
+import re
+
+my_api_key = "AIzaSyCr6Yvpz6CNLYhZHWn2vrd7QE3GO--ao9o"
+my_cse_id = "802c9ced402b44931"
+query = input("Introduceți numele: ")
 
 
-API_KEY = 'AIzaSyCr6Yvpz6CNLYhZHWn2vrd7QE3GO--ao9o'
-SEARCH_ENGINE_ID = '802c9ced402b44931'
+def google_search(search_term, api_key, cse_id, start_index=1, num_results=10, **kwargs):
+    service = build("customsearch", "v1", developerKey=api_key)
+    res = service.cse().list(q=search_term, cx=cse_id, start=start_index, num=num_results, **kwargs).execute()
+    return res['items']
 
 
-service = build('customsearch', 'v1', developerKey=API_KEY)
-
-user_input = input("Enter your search query: ")
-print("Searching...")
-
-
-res = service.cse().list(q=user_input, cx=SEARCH_ENGINE_ID, cr='countryRO').execute()
-
-
-counter = 0
-for result in res['items']:
-    url = result['link']
-    print("URL:", url)
-
-   
+def get_article_summary(url):
     response = requests.get(url)
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.content, "html.parser")
+        # Extract the relevant elements from the webpage using BeautifulSoup
+        # Customize the code according to the structure of the webpage you are scraping
+        possible_summary_names = ["article", "article class article", "div page-title", "product-highlights"]
+        for element_name in possible_summary_names:
+            summary_element = soup.find(element_name)
+            if summary_element:
+                return summary_element.get_text().strip()
 
-   
-    soup = BeautifulSoup(response.text, 'html.parser')
+    return None
 
-    price = None
-   
-    price_element = soup.find('span', class_='price')
-    if price_element:
-        price = price_element.text
-        print("Price:", price)
 
-    
-    product_info = None
-    
-    possible_element_names = ["h1", "h1 page-title", "div page-title","product-highlights"]
-    for element_name in possible_element_names:
-        info_element = soup.find(element_name)
-        if info_element:
-            product_info = info_element.text.strip()
-            break
+def get_price(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.content, "html.parser")
+        # Use CSS selectors to target specific HTML elements containing price information
+        price_selectors = ["span.price", "div.price", "p.price","div.final-price"]
+        for selector in price_selectors:
+            price_element = soup.select_one(selector)
+            if price_element:
+                # Apply regex pattern to extract the price from the element's text
+                price_text = price_element.get_text()
+                price_pattern = r'\b(\d{1,3}(?:[,.]\d{3})?)\b'
+                matches = re.findall(price_pattern, price_text)
+                if matches:
+                    return matches[0]
 
-    if product_info:
-        print("Product Information:", product_info)
+    return None
 
-   
-    print()
+results = google_search(
+    f"{query} site:ro", my_api_key, my_cse_id, num_results=10)
 
-    counter += 1
-    if counter == 5:
-        break
+for result in results:
+    title = result.get('title')
+    #price = result.get('pagemap', {}).get('offer', [{}])[0].get('price')
+    url = result.get('link')
+
+    #summary = get_article_summary(url)
+    summary = ""
+    price = get_price(url)
+
+    if title or price or url or summary:
+        pprint.pprint(f"Title: {title}")
+        pprint.pprint(f"Price: {price}")
+        pprint.pprint(f"URL: {url}")
+        pprint.pprint(f"Summary: {summary}")
+        pprint.pprint("--------------------")
+    else:
+        pprint.pprint("Incomplete information for this result")
+
+# Retrieve additional results
+results = google_search(
+    f"{query} site:ro", my_api_key, my_cse_id, start_index=11, num_results=10)
+
+for result in results:
+    title = result.get('title')
+    #price = result.get('pagemap', {}).get('offer', [{}])[0].get('price')
+    url = result.get('link')
+    snippet = result.get('snippet')
+    summary = " "
+    price = get_price(url)
+
+    if title or price or url or summary:
+        pprint.pprint(f"Title: {title}")
+        pprint.pprint(f"Price: {price}")
+        pprint.pprint(f"URL: {url}")
+        pprint.pprint(f"Snippet: {snippet}")
+        pprint.pprint(f"Summary: {summary}")
+        pprint.pprint("===========================================================================")
+    else:
+        pprint.pprint("Incomplete information for this result")
