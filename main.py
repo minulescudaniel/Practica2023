@@ -69,7 +69,7 @@ for result in results:
     else:
         pprint.pprint("Incomplete information for this result")
 
-# Retrieve additional results
+
 results = google_search(
     f"{query} site:ro", my_api_key, my_cse_id, start_index=11, num_results=10)
 
