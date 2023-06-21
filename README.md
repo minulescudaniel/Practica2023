@@ -8,3 +8,8 @@ UPDATE 20/06/2023:
 -Am folosit Google Custom Search API pentru a ma ajuta in a folosi link-urile gasite in functie de un keyword sau string
 
 -Am folosit BeautifulSoup pentru a extrage din documentul HTML informatiile necesare
+
+UPDATE 21/06/2023:
+-Am reorganizat codul (extragerea pretului si a informatiilor pe selectoare CSS)
+
+-Cautare pe elemente
