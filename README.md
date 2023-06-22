@@ -13,3 +13,8 @@ UPDATE 21/06/2023:
 -Am reorganizat codul (extragerea pretului si a informatiilor pe selectoare CSS)
 
 -Cautare pe elemente
+
+UPDATE 22/06/2023:
+-Afisare mai buna a rezultatelor
+
+-Stocarea preturilor in fisier csv
