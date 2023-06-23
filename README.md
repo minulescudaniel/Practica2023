@@ -18,3 +18,10 @@ UPDATE 22/06/2023:
 -Afisare mai buna a rezultatelor
 
 -Stocarea preturilor in fisier csv
+
+UPDATE 23/06/2023:
+-Implementarea unui price history
+
+-Implementarea unui plot dedicat cu dropdown menu
+
+-Implementarea unei interfete simple
