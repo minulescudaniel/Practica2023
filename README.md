@@ -4,14 +4,14 @@ Scriptul va permite utilizatorului să introducă un termen de căutare și va r
 descrieri sau URL-uri de pe paginile web găsite în rezultate.
 ```
 
- `Se vor folosi urmatoarele biblioteci: google-api-python-client, pandas, playwright, beautifulsoup4 și requests`
+ `Se vor folosi urmatoarele biblioteci: google-api-python-client, pandas, playwright, beautifulsoup4, csv, datetime, tkinter(GUI), schedule, time și requests`
 
 # UPDATE 20/06/2023: 
 - Am folosit Google Custom Search API pentru a ma ajuta in a folosi link-urile gasite in functie de un keyword sau string
 
 - Am folosit BeautifulSoup pentru a extrage din documentul HTML informatiile necesare
 
-## UPDATE 21/06/2023:
+# UPDATE 21/06/2023:
 - Am reorganizat codul (extragerea pretului si a informatiilor pe selectoare CSS)
 
 - Cautare pe elemente
@@ -27,3 +27,6 @@ descrieri sau URL-uri de pe paginile web găsite în rezultate.
 - Implementarea unui plot dedicat cu dropdown menu
 
 - Implementarea unei interfete simple
+
+# UPDATE 26/06/2023
+- Implementarea unui time scheduler pentru a rula codul automat la un interval de timp
