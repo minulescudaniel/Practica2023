@@ -5,9 +5,14 @@ import datetime
 import tkinter as tk
 from tkinter import ttk
 from ttkthemes import ThemedTk
+import threading
+import schedule
+import time
 
 
 def search():
+    global status_label
+
     query = entry.get()
 
     headers = {
@@ -17,6 +22,8 @@ def search():
     r = requests.get(f"https://www.google.com/search?q={query}&tbm=shop", headers=headers, cookies=cookies)
 
     url = f"https://www.google.com/search?q={query}&tbm=shop"
+
+    print("Se executa programul cu query-ul: " + query)
 
     soup = BeautifulSoup(r.content, "html.parser")
 
@@ -98,8 +105,24 @@ entry.pack(side="left")
 button = ttk.Button(search_frame, text="Search", command=search)
 button.pack(side="left", padx=10)
 
-
 status_label = ttk.Label(window, text="")
 status_label.pack(pady=10)
+
+
+def search_job():
+    search()
+
+
+def run_schedule():
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
+schedule.every(60).minutes.do(search_job)  # Run search_job() every 60 minutes
+
+thread = threading.Thread(target=run_schedule)
+thread.daemon = True  # Se seteaza thread-ul ca daemon pentru a opri procesele cand se termina programul principal
+thread.start()
 
 window.mainloop()
