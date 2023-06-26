@@ -1,8 +1,9 @@
-```bash
+## Proiectul
+
   Scopul acestui script Python este de a căuta și extrage informații de pe web, utilizând un API de la Google. 
 Scriptul va permite utilizatorului să introducă un termen de căutare și va returna rezultatele relevante, extrăgând informații precum titluri, 
 descrieri sau URL-uri de pe paginile web găsite în rezultate.
-```
+
 
  `Se vor folosi urmatoarele biblioteci: google-api-python-client, pandas, playwright, beautifulsoup4, csv, datetime, tkinter(GUI), schedule, time și requests`
 
