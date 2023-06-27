@@ -31,3 +31,6 @@ descrieri sau URL-uri de pe paginile web găsite în rezultate.
 
 # UPDATE 26/06/2023
 - Implementarea unui time scheduler pentru a rula codul automat la un interval de timp
+
+# UPDATE 27/06/2023
+- Functionalitatea de a trimite un mail cu cea mai buna oferta gasita
