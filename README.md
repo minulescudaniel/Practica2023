@@ -34,3 +34,6 @@ descrieri sau URL-uri de pe paginile web găsite în rezultate.
 
 # UPDATE 27/06/2023
 - Functionalitatea de a trimite un mail cu cea mai buna oferta gasita
+
+# UPDATE 30/06/2023
+- Proiect final
