@@ -12,6 +12,7 @@ from ttkthemes import ThemedTk
 import threading
 import schedule
 import time
+from tkinter import scrolledtext
 
 
 def send_email(subject, body):
@@ -32,8 +33,9 @@ def send_email(subject, body):
         server.send_message(message)
 
 
-def search():
+def search(page_number=0):
     global status_label
+    global grouped_products
 
     query = entry.get()
 
@@ -41,11 +43,10 @@ def search():
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
     }
     cookies = {"CONSENT": "YES+cb.20210720-07-p0.en+FX+410"}
-    r = requests.get(f"https://www.google.com/search?q={query}&tbm=shop", headers=headers, cookies=cookies)
+    url = f"https://www.google.com/search?q={query}&tbm=shop&start={page_number * 10}"
+    r = requests.get(url, headers=headers, cookies=cookies)
 
-    url = f"https://www.google.com/search?q={query}&tbm=shop"
-
-    print("Se executa programul cu query-ul: " + query)
+    print("Executing program with query: " + query + ", page: " + str(page_number))
 
     soup = BeautifulSoup(r.content, "html.parser")
 
@@ -73,6 +74,8 @@ def search():
             writer.writerow(csv_header)
 
         best_deal = None
+
+        grouped_products = {}
 
         # Extract product information from each container
         for container in product_containers:
@@ -114,6 +117,23 @@ def search():
             else:
                 previous_prices[product_key] = [re.sub(r"\D", "", price)]  # Remove non-digit characters
 
+            if title in grouped_products:
+                grouped_products[title].append({
+                    "Price": price,
+                    "Condition": second_hand,
+                    "Store": store,
+                    "URL": url,
+                    "Timestamp": timestamp
+                })
+            else:
+                grouped_products[title] = [{
+                    "Price": price,
+                    "Condition": second_hand,
+                    "Store": store,
+                    "URL": url,
+                    "Timestamp": timestamp
+                }]
+
             row = [title, price, second_hand, store, url, timestamp]
             writer.writerow(row)
 
@@ -128,43 +148,100 @@ def search():
                f"Data: {best_deal['timestamp']}"
         send_email(subject, body)
 
-    status_label.configure(text="Data has been saved to the file " + csv_filename)
+    status_label.configure(text="Datele s-au salvat in " + csv_filename)
+
+    display_grouped_products(grouped_products)
 
 
-window = ThemedTk(theme="radiance")
-window.title("Price Tracker")
-window.geometry("400x200")
+def display_grouped_products(grouped_products):
+    global result_frame
+    global tree
+    global scroll_text
 
-search_frame = ttk.Frame(window, padding="20")
-search_frame.pack()
+    if result_frame:
+        result_frame.destroy()
 
-search_label = ttk.Label(search_frame, text="Search:")
-search_label.pack(side="left")
+    result_frame = ttk.Frame(window)
+    result_frame.pack(fill="both", expand=True, padx=20, pady=10)
 
-entry = ttk.Entry(search_frame, width=30)
-entry.pack(side="left")
+    tree = ttk.Treeview(result_frame, columns=("Product Name",))
+    tree.heading("#0", text="")
+    tree.heading("Product Name", text="Product Name")
+    tree.column("#0", stretch=tk.NO, minwidth=0, width=0)
+    tree.column("Product Name", stretch=tk.YES, width=500)
 
-button = ttk.Button(search_frame, text="Search", command=search)
-button.pack(side="left", padx=10)
+    for index, product_name in enumerate(grouped_products):
+        tree.insert(parent="", index=index, iid=index, text="", values=(product_name,))
 
-status_label = ttk.Label(window, text="")
-status_label.pack(pady=10)
+    tree.bind("<<TreeviewSelect>>", on_treeview_select)
+    tree.pack(fill="both", expand=True)
+
+    scroll_text = scrolledtext.ScrolledText(result_frame, wrap=tk.WORD, height=10)
+    scroll_text.pack(fill="both", expand=True, pady=10)
+    scroll_text.configure(state="disabled")
 
 
-def search_job():
-    search()
+def on_treeview_select(event):
+    selected_item = event.widget.selection()[0]
+    product_name = event.widget.item(selected_item, "values")[0]
+
+    products = grouped_products[product_name]
+
+    scroll_text.configure(state="normal")
+    scroll_text.delete(1.0, tk.END)
+
+    for product in products:
+        price_formatted = f"{product['Price']}"
+        scroll_text.insert(tk.END, f"Nume: {product_name}\n"
+                                   f"Pret: {price_formatted}\n"
+                                   f"Conditie: {product['Condition']}\n"
+                                   f"Magazin: {product['Store']}\n"
+                                   f"URL: {product['URL']}\n"
+                                   f"Data: {product['Timestamp']}\n\n")
+
+    scroll_text.configure(state="disabled")
 
 
-def run_schedule():
+def start_search():
+    global status_label
+    status_label.configure(text="Cautare in desfasurare...")
+    threading.Thread(target=search).start()
+
+
+def schedule_search():
+    schedule.every(1).hours.do(start_search)
+
     while True:
         schedule.run_pending()
         time.sleep(1)
 
 
-schedule.every(60).minutes.do(search_job)  # Run search_job() every 60 minutes
+window = ThemedTk(theme="arc")
+window.geometry("1300x600")
+window.title("Web Scraper")
 
-thread = threading.Thread(target=run_schedule)
-thread.daemon = True  # Set the thread as daemon to stop the processes when the main program ends
-thread.start()
+query_frame = ttk.Frame(window)
+query_frame.pack(pady=20)
+
+label = ttk.Label(query_frame, text="Introduceti un produs:")
+label.pack(side="left")
+
+entry = ttk.Entry(query_frame)
+entry.pack(side="left")
+
+search_button = ttk.Button(query_frame, text="Cauta", command=start_search)
+search_button.pack(side="left", padx=10)
+
+status_label = ttk.Label(window, text="")
+status_label.pack(pady=10)
+
+result_frame = None
+tree = None
+scroll_text = None
+
+next_page_button = ttk.Button(window, text="Pagina urmatoare", command=lambda: threading.Thread(target=search, args=(1,)).start())
+next_page_button.pack(pady=10)
+
+threading.Thread(target=schedule_search).start()
 
 window.mainloop()
